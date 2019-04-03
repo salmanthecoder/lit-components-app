@@ -24,7 +24,10 @@ class TodoView extends LitElement {
 
     constructor() {
         super();
-        this.todos = [];
+        this.todos = [{
+                 task: "One",
+                complete: false
+        }];
         this.filter = VisibilityFilters.SHOW_ALL;
         this.task = '';
     }
@@ -36,9 +39,11 @@ class TodoView extends LitElement {
     value="${this.task}" 
     @change="${this.updateTask}"> 
     </vaadin-text-field>
-     <input type="text" name="lname" placeholder="Task"
-     value="${this.task}" 
-     @change="${this.updateTask}">
+    <vaadin-text-field
+    placeholder="Task"
+    value="${this.task}" 
+    @change="${this.updateTask}"> 
+  </vaadin-text-field>
 
         <vaadin-button
         theme="primary"
@@ -46,23 +51,38 @@ class TodoView extends LitElement {
         
         >Add Todo</vaadin-button>
         </div>
-        
+        <vaadin-radio-group
+  class="visibility-filters"
+  value="${this.filter}"
+  @value-changed="${this.filterChanged}"> 
+
+  ${Object.values(VisibilityFilters).map( 
+    filter => html`
+      <vaadin-radio-button value="${filter}">
+        ${filter}
+      </vaadin-radio-button>`
+  )}
+</vaadin-radio-group>
+<vaadin-button
+  @click="${this.clearCompleted}"> 
+    Clear completed
+</vaadin-button>
         <p> todo-view</p>
-        <div>
-        Salman
-            ${this.todos.map(
-            todo => html`
-                <div>
-                Saifi
-                    <vaadin-checkbox ?checked="${todo.complete}"
-                    @change="${e => this.updateTodoStatus(todo, e.target.checked)}">
-                    ${todo.task}
-                    </vaadin-checkbox>
-                </div>
-                `
-        )
-            }
+        <div class="">
+  ${this.applyFilter(this.todos).map(
+      todo => html` 
+        <div class="todo-item">
+          <vaadin-checkbox
+            ?checked="${todo.complete}" 
+            @change="${ e => this.updateTodoStatus(todo, e.target.checked)}"> 
+            ${todo.task}
+          </vaadin-checkbox>
         </div>
+      `
+    )
+  }
+  Salman
+</div>
         `;
 
     }
@@ -74,7 +94,6 @@ class TodoView extends LitElement {
                 task: this.task,
                 complete: false
             }];
-            this.task = '';
         }
     }
 
@@ -88,12 +107,30 @@ class TodoView extends LitElement {
         this.task = e.target.value;
     }
 
-    updateTodoStatus() {
+    updateTodoStatus(updatedTodo, complete) {
         this.todos = this.todos.map(todo =>
             updatedTodo === todo ? {...updatedTodo , complete} :todo
 
         );
     }
+    filterChanged(e) { 
+        this.filter = e.target.value;
+      }
+    
+      clearCompleted() { 
+        this.todos = this.todos.filter(todo => !todo.complete);
+      }
+    
+      applyFilter(todos) { 
+        switch (this.filter) {
+          case VisibilityFilters.SHOW_ACTIVE:
+            return todos.filter(todo => !todo.complete);
+          case VisibilityFilters.SHOW_COMPLETED:
+            return todos.filter(todo => todo.complete);
+          default:
+            return todos;
+        }
+      }
 }
 
 customElements.define('todo-view', TodoView);
